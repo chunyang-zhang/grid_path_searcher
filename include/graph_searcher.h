@@ -50,7 +50,6 @@ struct GridNode
     double gScore, fScore;
     GridNodePtr cameFrom;
     std::multimap<double, GridNodePtr>::iterator nodeMapIt;
-    uint8_t * occupancy; 
 
     GridNode(Eigen::Vector3i _index, Eigen::Vector3d _coord){  
 		id = 0;
@@ -89,103 +88,47 @@ class gridPathFinder
 		int GLXYZ_SIZE, GLYZ_SIZE;
 		double gl_xl, gl_yl, gl_zl;
 		double gl_xu, gl_yu, gl_zu;
-		
-		int tmp_id_x, tmp_id_y, tmp_id_z;
-		int goal_x, goal_y, goal_z;
+	
+		Eigen::Vector3i goalIdx;
 
 		uint8_t * data;
 
 		GridNodePtr *** GridNodeMap;
 		std::multimap<double, GridNodePtr> openSet;
-
 		JPS3DNeib * jn3d;
+
+		bool jump(const Eigen::Vector3i & curIdx, Eigen::Vector3i & expDir, Eigen::Vector3i & neiIdx);
+		
+		inline void getJpsSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
+		inline void getSucc   (GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
+		inline bool hasForced(const Eigen::Vector3i & idx, const Eigen::Vector3i & dir);
+
+		inline bool isOccupied(const int & idx_x, const int & idx_y, const int & idx_z) const;
+		inline bool isOccupied(const Eigen::Vector3i & index) const;
+		inline bool isFree(const int & idx_x, const int & idx_y, const int & idx_z) const;
+		inline bool isFree(const Eigen::Vector3i & index) const;
+
+		inline Eigen::Vector3d gridIndex2coord(const Eigen::Vector3i & index) const;
+		inline Eigen::Vector3i coord2gridIndex(const Eigen::Vector3d & pt) const;
 
 	public:
 		gridPathFinder( ){				
     		jn3d = new JPS3DNeib();
 		};
 
-		gridPathFinder(){};
 		~gridPathFinder(){
 			delete jn3d;
 		};
 
+		void initGridMap(double _resolution, Eigen::Vector3d global_xyz_l, Eigen::Vector3d global_xyz_u, int max_x_id, int max_y_id, int max_z_id);
 		void setObs(const double coord_x, const double coord_y, const double coord_z);
 
-		void initGridMap(double _resolution, Eigen::Vector3d global_xyz_l, Eigen::Vector3d global_xyz_u);
 		void graphSearch(Eigen::Vector3d start_pt, Eigen::Vector3d end_pt, bool use_jps = false);
-
-		inline void getJpsSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
-		inline void getSucc   (GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
-		inline bool hasForced(int x, int y, int z, int dx, int dy, int dz);
-		bool jump(int x, int y, int z, int dx, int dy, int dz, int& new_x, int& new_y, int& new_z);
-		inline bool isOccupied(int idx_x, int idx_y, int idx_z) const;
-		inline bool isFree(int idx_x, int idx_y, int idx_z) const;
-
 		void resetGrid(GridNodePtr ptr);
 		void resetUsedGrids();
 
+		Eigen::Vector3d coordRounding(const Eigen::Vector3d & coord) const;
 		std::vector<Eigen::Vector3d> getPath();
 		std::vector<Eigen::Vector3d> getVisitedNodes();
 		std::vector<Eigen::Vector3d> getCloseNodes();
-
-		inline Eigen::Vector3d gridIndex2coord(const Eigen::Vector3i index) const
-		{
-		    Eigen::Vector3d pt;
-
-		    pt(0) = ((double)index(0) + 0.5) * resolution + gl_xl;
-		    pt(1) = ((double)index(1) + 0.5) * resolution + gl_yl;
-		    pt(2) = ((double)index(2) + 0.5) * resolution + gl_zl;
-
-		    return pt;
-		};
-
-		inline Eigen::Vector3i coord2gridIndex(const Eigen::Vector3d pt) const
-		{
-		    Eigen::Vector3i idx;
-		    idx <<  std::min( std::max( int( (pt(0) - gl_xl) * inv_resolution), 0), GLX_SIZE - 1),
-		            std::min( std::max( int( (pt(1) - gl_yl) * inv_resolution), 0), GLY_SIZE - 1),
-		            std::min( std::max( int( (pt(2) - gl_zl) * inv_resolution), 0), GLZ_SIZE - 1);      		    
-		  
-		    return idx;
-		};
-
-		inline uint8_t IndexQuery( const Eigen::Vector3i index) const
-		{   
-			if (index(0) >= 0 && index(1) >= 0 && index(2) >= 0 && index(0) < GLX_SIZE && index(1) < GLY_SIZE && index(2) < GLZ_SIZE)
-			    return data[index(0) * GLYZ_SIZE + index(1) * GLZ_SIZE + index(2)];
-			else
-				return 1.0;
-		};
-
-		inline uint8_t IndexQueryFast( const Eigen::Vector3i & index) const
-		{   
-			return data[index(0) * GLYZ_SIZE + index(1) * GLZ_SIZE + index(2)];
-		};
-
-		inline uint8_t IndexQuery( const int & index_x, const int & index_y, const int & index_z) const
-		{      
-		    return data[index_x * GLYZ_SIZE + index_y * GLZ_SIZE + index_z];
-		};
-
-		inline uint8_t CoordQuery(const Eigen::Vector3d & coord) const
-		{   
-		    Eigen::Vector3i index = coord2gridIndex(coord);
-
-		    if (index(0) >= 0 && index(1) >= 0 && index(2) >= 0 && index(0) < GLX_SIZE && index(1) < GLY_SIZE && index(2) < GLZ_SIZE)
-		    	return data[index(0) * GLYZ_SIZE + index(1) * GLZ_SIZE + index(2)];
-			else
-				return 1.0;
-		};
-
-		inline uint8_t CoordQuery( const double & pt_x, const double & pt_y, const double & pt_z ) const
-		{   
-		    Eigen::Vector3d coord(pt_x, pt_y, pt_z);
-		    Eigen::Vector3i index = coord2gridIndex(coord);
-
-		    if (index(0) >= 0 && index(1) >= 0 && index(2) >= 0 && index(0) < GLX_SIZE && index(1) < GLY_SIZE && index(2) < GLZ_SIZE)
-		    	return data[index(0) * GLYZ_SIZE + index(1) * GLZ_SIZE + index(2)];
-			else
-				return 1.0;
-		};
 };

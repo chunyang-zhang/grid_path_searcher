@@ -14,7 +14,7 @@
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
 
-#include "graph_search.h"
+#include "graph_searcher.h"
 #include "backward.hpp"
 
 using namespace std;
@@ -93,8 +93,7 @@ void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map)
                     double inf_z = pt.z + z * _resolution;
                     _path_finder->setObs(inf_x, inf_y, inf_z);
 
-                    Vector3i idx_inf = _path_finder->coord2gridIndex(Vector3d(inf_x, inf_y, inf_z));
-                    Vector3d cor_inf = _path_finder->gridIndex2coord( idx_inf );
+                    Vector3d cor_inf = _path_finder->coordRounding(Vector3d(inf_x, inf_y, inf_z));
 
                     pt_inf.x = cor_inf(0);
                     pt_inf.y = cor_inf(1);
@@ -168,8 +167,8 @@ int main(int argc, char** argv)
     _max_y_id = (int)(_y_size * _inv_resolution);
     _max_z_id = (int)(_z_size * _inv_resolution);
 
-    _path_finder  = new gridPathFinder(_max_x_id, _max_y_id, _max_z_id);
-    _path_finder  -> initGridMap(_resolution, _map_lower, _map_upper);
+    _path_finder  = new gridPathFinder();
+    _path_finder  -> initGridMap(_resolution, _map_lower, _map_upper, _max_x_id, _max_y_id, _max_z_id);
 
     ros::Rate rate(100);
     bool status = ros::ok();
