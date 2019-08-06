@@ -4,7 +4,7 @@ This is a toy project for collecting/developing some fundamental algorithms of r
 
 Now this repo contains:
 
-**Dijkstra & A**
+**Dijkstra & A star**
 
 **Jump Point Search**
 
