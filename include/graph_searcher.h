@@ -97,7 +97,7 @@ class gridPathFinder
 		std::multimap<double, GridNodePtr> openSet;
 		JPS3DNeib * jn3d;
 
-		bool jump(const Eigen::Vector3i & curIdx, Eigen::Vector3i & expDir, Eigen::Vector3i & neiIdx);
+		bool jump(const Eigen::Vector3i & curIdx, const Eigen::Vector3i & expDir, Eigen::Vector3i & neiIdx);
 		
 		inline void getJpsSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
 		inline void getSucc   (GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);

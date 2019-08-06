@@ -407,7 +407,7 @@ void gridPathFinder::graphSearch(Vector3d start_pt, Vector3d end_pt, bool use_jp
         ROS_WARN("Time consume in A star path finding is %f", (time_2 - time_1).toSec() );
 }
 
-bool gridPathFinder::jump(const Vector3i & curIdx, Vector3i & expDir, Vector3i & neiIdx)
+bool gridPathFinder::jump(const Vector3i & curIdx, const Vector3i & expDir, Vector3i & neiIdx)
 {
     neiIdx = curIdx + expDir;
 
@@ -420,7 +420,7 @@ bool gridPathFinder::jump(const Vector3i & curIdx, Vector3i & expDir, Vector3i &
     if( hasForced(neiIdx, expDir) )
         return true;
 
-    const int id = (expDir(0) + 1) + 3 * (expDir(1) + 1) + 9 * (expDir(0) + 1);
+    const int id = (expDir(0) + 1) + 3 * (expDir(1) + 1) + 9 * (expDir(2) + 1);
     const int norm1 = abs(expDir(0)) + abs(expDir(1)) + abs(expDir(2));
     int num_neib = jn3d->nsz[norm1][0];
 
