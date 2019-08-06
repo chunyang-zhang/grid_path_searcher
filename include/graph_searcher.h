@@ -99,7 +99,7 @@ class gridPathFinder
 
 		bool jump(const Eigen::Vector3i & curIdx, const Eigen::Vector3i & expDir, Eigen::Vector3i & neiIdx);
 		
-		inline void getJpsSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
+		inline void getJpsSucc(GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets, int num_iter);
 		inline void getSucc   (GridNodePtr currentPtr, std::vector<GridNodePtr> & neighborPtrSets, std::vector<double> & edgeCostSets);
 		inline bool hasForced(const Eigen::Vector3i & idx, const Eigen::Vector3i & dir);
 
@@ -112,6 +112,8 @@ class gridPathFinder
 		inline Eigen::Vector3i coord2gridIndex(const Eigen::Vector3d & pt) const;
 
 	public:
+
+		std::vector<Eigen::Vector3d> debugNodes;
 		gridPathFinder( ){				
     		jn3d = new JPS3DNeib();
 		};

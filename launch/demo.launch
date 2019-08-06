@@ -6,7 +6,7 @@
 
 <arg name="start_x" default=" 0.0"/>
 <arg name="start_y" default=" 0.0"/>
-<arg name="start_z" default=" 0.5"/>
+<arg name="start_z" default=" 1.0"/>
 
   <node pkg="grid_path_searcher" type="demo_node" name="demo_node" output="screen" required = "true">
       <remap from="~waypoints"       to="/waypoint_generator/waypoints"/>

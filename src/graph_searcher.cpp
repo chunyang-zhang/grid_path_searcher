@@ -119,6 +119,7 @@ double gridPathFinder::getEuclHeu(GridNodePtr node1, GridNodePtr node2)
 double gridPathFinder::getHeu(GridNodePtr node1, GridNodePtr node2)
 {
     return tie_breaker * getDiagHeu(node1, node2);
+    //return getEuclHeu(node1, node2);
 }
 
 vector<GridNodePtr> gridPathFinder::retrievePath(GridNodePtr current)
@@ -225,7 +226,7 @@ inline bool gridPathFinder::isFree(const int & idx_x, const int & idx_y, const i
            (data[idx_x * GLYZ_SIZE + idx_y * GLZ_SIZE + idx_z] < 1));
 }
 
-inline void gridPathFinder::getJpsSucc(GridNodePtr currentPtr, vector<GridNodePtr> & neighborPtrSets, vector<double> & edgeCostSets)
+inline void gridPathFinder::getJpsSucc(GridNodePtr currentPtr, vector<GridNodePtr> & neighborPtrSets, vector<double> & edgeCostSets, int num_iter)
 {   
     neighborPtrSets.clear();
     edgeCostSets.clear();
@@ -259,21 +260,24 @@ inline void gridPathFinder::getJpsSucc(GridNodePtr currentPtr, vector<GridNodePt
                 
                 if( !jump(currentPtr->index, expandDir, neighborIdx) ) 
                     continue;
+            }
+            else
+                continue;
         }
-        else
-            continue;
-    }
 
-    GridNodePtr nodePtr = GridNodeMap[neighborIdx(0)][neighborIdx(1)][neighborIdx(2)];
-    nodePtr->dir = expandDir;
-    
-    neighborPtrSets.push_back(nodePtr);
-    edgeCostSets.push_back(
-        sqrt(
-        (neighborIdx(0) - currentPtr->index(0)) * (neighborIdx(0) - currentPtr->index(0)) +
-        (neighborIdx(1) - currentPtr->index(1)) * (neighborIdx(1) - currentPtr->index(1)) +
-        (neighborIdx(2) - currentPtr->index(2)) * (neighborIdx(2) - currentPtr->index(2))   ) 
-        );
+        if( num_iter == 1 )
+            debugNodes.push_back(gridIndex2coord(neighborIdx));
+
+        GridNodePtr nodePtr = GridNodeMap[neighborIdx(0)][neighborIdx(1)][neighborIdx(2)];
+        nodePtr->dir = expandDir;
+        
+        neighborPtrSets.push_back(nodePtr);
+        edgeCostSets.push_back(
+            sqrt(
+            (neighborIdx(0) - currentPtr->index(0)) * (neighborIdx(0) - currentPtr->index(0)) +
+            (neighborIdx(1) - currentPtr->index(1)) * (neighborIdx(1) - currentPtr->index(1)) +
+            (neighborIdx(2) - currentPtr->index(2)) * (neighborIdx(2) - currentPtr->index(2))   ) 
+            );
     }
 }
 
@@ -309,6 +313,7 @@ inline void gridPathFinder::getSucc(GridNodePtr currentPtr, vector<GridNodePtr> 
 void gridPathFinder::graphSearch(Vector3d start_pt, Vector3d end_pt, bool use_jps)
 {   
     ros::Time time_1 = ros::Time::now();    
+    debugNodes.clear();
 
     Vector3i start_idx = coord2gridIndex(start_pt);
     Vector3i end_idx   = coord2gridIndex(end_pt);
@@ -344,9 +349,7 @@ void gridPathFinder::graphSearch(Vector3d start_pt, Vector3d end_pt, bool use_jp
         num_iter ++;
         currentPtr = openSet.begin() -> second;
 
-        if(currentPtr->index(0) == endPtr->index(0)
-        && currentPtr->index(1) == endPtr->index(1)
-        && currentPtr->index(2) == endPtr->index(2) )
+        if( currentPtr->index == goalIdx )
         {
             ros::Time time_2 = ros::Time::now();
 
@@ -365,7 +368,7 @@ void gridPathFinder::graphSearch(Vector3d start_pt, Vector3d end_pt, bool use_jp
         if(!use_jps)
             getSucc(currentPtr, neighborPtrSets, edgeCostSets);
         else
-            getJpsSucc(currentPtr, neighborPtrSets, edgeCostSets);
+            getJpsSucc(currentPtr, neighborPtrSets, edgeCostSets, num_iter);
 
         for(int i = 0; i < (int)neighborPtrSets.size(); i++){
             neighborPtr = neighborPtrSets[i];
@@ -424,7 +427,7 @@ bool gridPathFinder::jump(const Vector3i & curIdx, const Vector3i & expDir, Vect
     const int norm1 = abs(expDir(0)) + abs(expDir(1)) + abs(expDir(2));
     int num_neib = jn3d->nsz[norm1][0];
 
-    for( int k = 0; k < num_neib-1; ++k ){
+    for( int k = 0; k < num_neib - 1; ++k ){
         Vector3i newNeiIdx;
         Vector3i newDir(jn3d->ns[id][0][k], jn3d->ns[id][1][k], jn3d->ns[id][2][k]);
         if( jump(neiIdx, newDir, newNeiIdx) ) 

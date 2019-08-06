@@ -37,13 +37,14 @@ int _max_x_id, _max_y_id, _max_z_id;
 
 // ros related
 ros::Subscriber _map_sub, _pts_sub;
-ros::Publisher  _grid_path_vis_pub, _closed_nodes_vis_pub, _open_nodes_vis_pub, _close_nodes_sequence_vis_pub, _grid_map_vis_pub;
+ros::Publisher  _grid_path_vis_pub, _debug_nodes_vis_pub, _closed_nodes_vis_pub, _open_nodes_vis_pub, _close_nodes_sequence_vis_pub, _grid_map_vis_pub;
 
 gridPathFinder * _path_finder = new gridPathFinder();
 
 void rcvWaypointsCallback(const nav_msgs::Path & wp);
 void rcvPointCloudCallBack(const sensor_msgs::PointCloud2 & pointcloud_map);
 
+void visDebugNodes( vector<Vector3d> nodes );
 void visGridPath( vector<Vector3d> nodes, bool is_use_jps );
 void visCloseNode( vector<Vector3d> nodes );
 void visOpenNode( vector<Vector3d> nodes );
@@ -58,7 +59,7 @@ void rcvWaypointsCallback(const nav_msgs::Path & wp)
     Vector3d target_pt;
     target_pt << wp.poses[0].pose.position.x,
                  wp.poses[0].pose.position.y,
-                 wp.poses[0].pose.position.z;
+                 1.0;//wp.poses[0].pose.position.z;
 
     ROS_INFO("[jps_node] receive the way-points");
     pathFinding(_start_pt, target_pt); 
@@ -122,6 +123,8 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
     _path_finder->graphSearch(start_pt, target_pt, true);
     auto grid_path   = _path_finder->getPath();
     visGridPath (grid_path, true);
+    visDebugNodes(_path_finder->debugNodes);
+
     _path_finder->resetUsedGrids();
 
     _path_finder->graphSearch(start_pt, target_pt, false);
@@ -143,6 +146,7 @@ int main(int argc, char** argv)
 
     _grid_map_vis_pub             = nh.advertise<sensor_msgs::PointCloud2>("grid_map_vis", 1);
     _grid_path_vis_pub            = nh.advertise<visualization_msgs::Marker>("grid_path_vis", 1);
+    _debug_nodes_vis_pub          = nh.advertise<visualization_msgs::Marker>("debug_nodes_vis", 1);
     _closed_nodes_vis_pub         = nh.advertise<visualization_msgs::Marker>("closed_nodes_vis",   1);
     _open_nodes_vis_pub           = nh.advertise<visualization_msgs::Marker>("open_nodes_vis",     1);
     _close_nodes_sequence_vis_pub = nh.advertise<visualization_msgs::Marker>("close_nodes_sequence_vis", 10);
@@ -181,6 +185,46 @@ int main(int argc, char** argv)
 
     delete _path_finder;
     return 0;
+}
+
+void visDebugNodes( vector<Vector3d> nodes )
+{   
+    visualization_msgs::Marker node_vis; 
+    node_vis.header.frame_id = "world";
+    node_vis.header.stamp = ros::Time::now();
+    
+    node_vis.ns = "demo_node/debug_info";
+
+    node_vis.type = visualization_msgs::Marker::CUBE_LIST;
+    node_vis.action = visualization_msgs::Marker::ADD;
+    node_vis.id = 0;
+
+    node_vis.pose.orientation.x = 0.0;
+    node_vis.pose.orientation.y = 0.0;
+    node_vis.pose.orientation.z = 0.0;
+    node_vis.pose.orientation.w = 1.0;
+
+    node_vis.color.a = 0.5;
+    node_vis.color.r = 0.0;
+    node_vis.color.g = 0.0;
+    node_vis.color.b = 0.0;
+
+    node_vis.scale.x = _resolution;
+    node_vis.scale.y = _resolution;
+    node_vis.scale.z = _resolution;
+
+    geometry_msgs::Point pt;
+    for(int i = 0; i < int(nodes.size()); i++)
+    {
+        Vector3d coord = nodes[i];
+        pt.x = coord(0);
+        pt.y = coord(1);
+        pt.z = coord(2);
+
+        node_vis.points.push_back(pt);
+    }
+
+    _debug_nodes_vis_pub.publish(node_vis);
 }
 
 void visGridPath( vector<Vector3d> nodes, bool is_use_jps )
