@@ -135,7 +135,7 @@ void pathFinding(const Vector3d start_pt, const Vector3d target_pt)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "jps_node");
+    ros::init(argc, argv, "demo_node");
     ros::NodeHandle nh("~");
 
     _map_sub  = nh.subscribe( "map",       1, rcvPointCloudCallBack );
@@ -190,9 +190,9 @@ void visGridPath( vector<Vector3d> nodes, bool is_use_jps )
     node_vis.header.stamp = ros::Time::now();
     
     if(is_use_jps)
-        node_vis.ns = "jps_node/jps_path";
+        node_vis.ns = "demo_node/jps_path";
     else
-        node_vis.ns = "jps_node/astar_path";
+        node_vis.ns = "demo_node/astar_path";
 
     node_vis.type = visualization_msgs::Marker::CUBE_LIST;
     node_vis.action = visualization_msgs::Marker::ADD;
@@ -240,7 +240,7 @@ void visCloseNode( vector<Vector3d> nodes )
     visualization_msgs::Marker node_vis; 
     node_vis.header.frame_id = "world";
     node_vis.header.stamp = ros::Time::now();
-    node_vis.ns = "jps_node/closed_nodes";
+    node_vis.ns = "demo_node/closed_nodes";
     node_vis.type = visualization_msgs::Marker::CUBE_LIST;
     node_vis.action = visualization_msgs::Marker::ADD;
     node_vis.id = 0;
@@ -277,7 +277,7 @@ void visOpenNode( vector<Vector3d> nodes )
     visualization_msgs::Marker node_vis; 
     node_vis.header.frame_id = "world";
     node_vis.header.stamp = ros::Time::now();
-    node_vis.ns = "jps_node/visited_nodes";
+    node_vis.ns = "demo_node/visited_nodes";
     node_vis.type = visualization_msgs::Marker::CUBE_LIST;
     node_vis.action = visualization_msgs::Marker::ADD;
     node_vis.id = 0;
@@ -311,11 +311,10 @@ void visOpenNode( vector<Vector3d> nodes )
 
 void visCloseNodeSequence( vector<Vector3d> nodes )
 {   
-    //cout<<nodes.size()<<endl;
     visualization_msgs::Marker node_vis; 
     node_vis.header.frame_id = "world";
     node_vis.header.stamp = ros::Time::now();
-    node_vis.ns = "jps_node/animation_of_close_nodes";
+    node_vis.ns = "demo_node/animation_of_close_nodes";
     node_vis.type = visualization_msgs::Marker::CUBE_LIST;
     node_vis.action = visualization_msgs::Marker::ADD;
     node_vis.id = 0;
@@ -343,9 +342,6 @@ void visCloseNodeSequence( vector<Vector3d> nodes )
         pt.z = coord(2);
 
         node_vis.points.push_back(pt);
-        //cout<<"node_vis size: "<<node_vis.points.size()<<endl;
         _close_nodes_sequence_vis_pub.publish(node_vis);
     }
-
-    //ROS_WARN("animation over");
 }

@@ -118,7 +118,6 @@ Visualization Manager:
       Name: gridPath
       Namespaces:
         jps_node/astar_path: true
-        jps_node/closed_nodes: true
         jps_node/jps_path: true
       Queue Size: 100
       Value: true
@@ -140,25 +139,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 11.0763893
+      Distance: 6.49382114
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.95896399
-        Y: -1.07171702
+        X: 2.19279385
+        Y: 1.48108816
         Z: -1.04904175e-05
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.23479664
+      Pitch: 1.25979674
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 4.39470243
+      Yaw: 5.09656477
     Saved:
       - Class: rviz/Orbit
         Distance: 79.2448425

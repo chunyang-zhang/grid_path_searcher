@@ -12,8 +12,7 @@ void gridPathFinder::initGridMap(double _resolution, Vector3d global_xyz_l, Vect
     gl_xu = global_xyz_u(0);
     gl_yu = global_xyz_u(1);
     gl_zu = global_xyz_u(2);
-
-    // size of a big big global grid map
+    
     GLX_SIZE = max_x_id;
     GLY_SIZE = max_y_id;
     GLZ_SIZE = max_z_id;
@@ -352,9 +351,9 @@ void gridPathFinder::graphSearch(Vector3d start_pt, Vector3d end_pt, bool use_jp
             ros::Time time_2 = ros::Time::now();
 
             if( use_jps )
-                ROS_WARN("[JPS]{sucess} Time in JPS path finding is %f ms", (time_2 - time_1).toSec() * 1000.0 );
+                ROS_WARN("[JPS]{sucess} Time in JPS is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );
             else
-                ROS_WARN("[A*]{sucess}  Time in A*  path finding is %f ms", (time_2 - time_1).toSec() * 1000.0 );
+                ROS_WARN("[A*]{sucess}  Time in A*  is %f ms, path cost if %f m", (time_2 - time_1).toSec() * 1000.0, currentPtr->gScore * resolution );
             
             gridPath = retrievePath(currentPtr);
             return;
@@ -452,7 +451,7 @@ inline bool gridPathFinder::hasForced(const Vector3i & idx, const Vector3i & dir
                     return true;
             }
             return false;
-            
+
         case 2:
             // 2-d move, check 8 neighbors
             for( int fn = 0; fn < 8; ++fn ){
